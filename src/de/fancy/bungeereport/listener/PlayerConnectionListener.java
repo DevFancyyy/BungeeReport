@@ -9,7 +9,7 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 
 public class PlayerConnectionListener implements Listener {
-    ReportManager reportManager = Main.getInstance().getReportManager();
+    private ReportManager reportManager = Main.getInstance().getReportManager();
 
     @EventHandler
     public void onPlayerJoin(PostLoginEvent event) {

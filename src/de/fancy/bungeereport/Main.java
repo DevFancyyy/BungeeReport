@@ -4,22 +4,13 @@ import de.fancy.bungeereport.commands.CMD_Report;
 import de.fancy.bungeereport.listener.PlayerConnectionListener;
 import de.fancy.bungeereport.utils.ReportManager;
 import net.md_5.bungee.api.ProxyServer;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
-import net.md_5.bungee.config.YamlConfiguration;
-
-import java.io.File;
-import java.util.HashMap;
 
 public class Main extends Plugin {
     public static Main instance;
 
     public String prefix = "§7[§4Report§7] §7";
     public ReportManager reportManager = new ReportManager();
-    public HashMap<ProxiedPlayer, String> languageMap = new HashMap<>();
-
-    public YamlConfiguration languageConfig;
-    public File languageFile;
 
     @Override
     public void onEnable() {
