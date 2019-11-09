@@ -1,0 +1,6 @@
+name: BungeeReport
+author: FancyPlay
+version: 0.0.1
+main: de.fancy.bungeereport.Main
+commands:
+  report:
