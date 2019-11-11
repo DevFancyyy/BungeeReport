@@ -30,77 +30,87 @@ public class CMD_Report extends Command {
         if(args.length == 0) {
             sendHelpMessage(player);
         } else if(args.length == 1) {
-            if(args[0].equalsIgnoreCase("help")) {
-                sendHelpMessage(player);
-            } else if(args[0].equalsIgnoreCase("list")) {
-                if(player.hasPermission("report.manage")) {
-                    player.sendMessage(Main.getInstance().getPrefix() + "§7Anzahl der Reports: §4" + reportManager.getPlayerReportSize() + "§7 (§4" + (reportManager.getPlayerReportSize()-reportManager.getAssignedReportsSize()) + "§7 offen)");
+            if(!(args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("toggle") || args[0].equalsIgnoreCase("info") || args[0].equalsIgnoreCase("info"))) {
+                String validReasons = "§e";
 
-                    for(Map.Entry<ProxiedPlayer, List<List<String>>> reports : reportManager.getPlayerReports().entrySet()) {
-                        ProxiedPlayer target = reports.getKey();
-                        String online = "§4Offline";
+                for(int i = 0; i < reportManager.getReportReasons().size(); i++) {
+                    validReasons = validReasons + reportManager.getReportReasons().get(i) + ", ";
+                }
 
-                        if(ProxyServer.getInstance().getPlayers().contains(target)) {
-                            online = "§aOnline";
+                player.sendMessage(Main.getInstance().getPrefix() + "§cDies ist kein gültiger Grund: " + validReasons);
+            } else {
+                if(args[0].equalsIgnoreCase("help")) {
+                    sendHelpMessage(player);
+                } else if(args[0].equalsIgnoreCase("list")) {
+                    if(player.hasPermission("report.manage")) {
+                        player.sendMessage(Main.getInstance().getPrefix() + "§7Anzahl der Reports: §4" + reportManager.getPlayerReportSize() + "§7 (§4" + (reportManager.getPlayerReportSize()-reportManager.getAssignedReportsSize()) + "§7 offen)");
+
+                        for(Map.Entry<ProxiedPlayer, List<List<String>>> reports : reportManager.getPlayerReports().entrySet()) {
+                            ProxiedPlayer target = reports.getKey();
+                            String online = "§4Offline";
+
+                            if(ProxyServer.getInstance().getPlayers().contains(target)) {
+                                online = "§aOnline";
+                            }
+
+                            if(reportManager.isReportAssigned(reports.getKey())) {
+                                TextComponent reportMessage = new TextComponent(Main.getInstance().getPrefix() + target.getDisplayName() + " §7| §4" + reportManager.getPlayerReport(target).size() + " §7Reports §7| §cZugewiesen (" + reportManager.getAssignedStaffmember(target).getDisplayName() + "§c)");
+                                reportMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§cDer Report ist bereits zugewiesen").create()));
+                                player.sendMessage(reportMessage);
+                            } else {
+                                TextComponent reportMessage = new TextComponent(Main.getInstance().getPrefix() + target.getDisplayName() + " §7| §4" + reportManager.getPlayerReport(target).size() + " §7Reports §7| §aOffen");
+                                reportMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Den Report über " + target.getDisplayName() + " §7annehmen").create()));
+                                reportMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report assign " + target.getName()));
+                                player.sendMessage(reportMessage);
+                            }
                         }
-
-                        if(reportManager.isReportAssigned(reports.getKey())) {
-                            TextComponent reportMessage = new TextComponent(Main.getInstance().getPrefix() + target.getDisplayName() + " §7| §4" + reportManager.getPlayerReport(target).size() + " §7Reports §7| §cZugewiesen (" + reportManager.getAssignedStaffmember(target).getDisplayName() + "§c)");
-                            reportMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§cDer Report ist bereits zugewiesen").create()));
-                            player.sendMessage(reportMessage);
+                    } else {
+                        player.sendMessage(noPermission);
+                    }
+                } else if(args[0].equalsIgnoreCase("toggle")) {
+                    if(player.hasPermission("report.manage")) {
+                        if(reportManager.isOnlineStaffMember(player)) {
+                            reportManager.removeFromOnlineStaff(player);
+                            player.sendMessage(Main.getInstance().getPrefix() + "§7Du hast dich erfolgreich §causgeloggt§7!");
                         } else {
-                            TextComponent reportMessage = new TextComponent(Main.getInstance().getPrefix() + target.getDisplayName() + " §7| §4" + args[1].toUpperCase() + " §7| §4" + reportManager.getPlayerReport(target).size() + " §7Reports §7| §aOffen §7| " + online);
-                            reportMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Den Report über " + target.getDisplayName() + " §7annehmen").create()));
-                            reportMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report assign " + target.getName()));
-                            player.sendMessage(reportMessage);
-                        }
-                    }
-                } else {
-                    player.sendMessage(noPermission);
-                }
-            } else if(args[0].equalsIgnoreCase("toggle")) {
-                if(player.hasPermission("report.manage")) {
-                    if(reportManager.isOnlineStaffMember(player)) {
-                        reportManager.removeFromOnlineStaff(player);
-                        player.sendMessage(Main.getInstance().getPrefix() + "§7Du hast dich erfolgreich §causgeloggt§7!");
-                    } else {
-                        reportManager.addToOnlineStaff(player);
-                        player.sendMessage(Main.getInstance().getPrefix() + "§7Du hast dich erfolgreich §aeingeloggt§7!");
-                    }
-                } else {
-                    player.sendMessage(noPermission);
-                }
-            } else if(args[0].equalsIgnoreCase("info")) {
-                if(player.hasPermission("report.manage")) {
-                    if(reportManager.hasStaffmemberAReportAssigned(player)) {
-                        ProxiedPlayer target = reportManager.getAssignedPlayer(player);
-
-                        List<List<String>> playerReports = reportManager.getPlayerReport(target);
-                        String online = "§4Offline";
-
-                        if(ProxyServer.getInstance().getPlayers().contains(target)) {
-                            online = "§aOnline";
-                        }
-
-                        player.sendMessage(Main.getInstance().getPrefix() + "§4Report-Info §7über " + target.getDisplayName() + "§7:");
-                        player.sendMessage(Main.getInstance().getPrefix() + "§7Anzahl der Reports: §4" + playerReports.size());
-                        player.sendMessage(Main.getInstance().getPrefix() + "§7Der Spieler ist: " + online);
-
-                        for(List<String> detailedReport : playerReports) {
-                            player.sendMessage(Main.getInstance().getPrefix() + "§4" + detailedReport.get(0) + "§7 | §4" + detailedReport.get(1) + "§7 | " + detailedReport.get(2));
+                            reportManager.addToOnlineStaff(player);
+                            player.sendMessage(Main.getInstance().getPrefix() + "§7Du hast dich erfolgreich §aeingeloggt§7!");
                         }
                     } else {
-                        player.sendMessage(Main.getInstance().getPrefix() + "§cDir ist kein Report zugewiesen!");
+                        player.sendMessage(noPermission);
                     }
-                } else {
-                    player.sendMessage(noPermission);
+                } else if(args[0].equalsIgnoreCase("info")) {
+                    if(player.hasPermission("report.manage")) {
+                        if(reportManager.hasStaffmemberAReportAssigned(player)) {
+                            ProxiedPlayer target = reportManager.getAssignedPlayer(player);
+
+                            List<List<String>> playerReports = reportManager.getPlayerReport(target);
+                            String online = "§4Offline";
+
+                            if(ProxyServer.getInstance().getPlayers().contains(target)) {
+                                online = "§aOnline";
+                            }
+
+                            player.sendMessage(Main.getInstance().getPrefix() + "§4Report-Info §7über " + target.getDisplayName() + "§7:");
+                            player.sendMessage(Main.getInstance().getPrefix() + "§7Anzahl der Reports: §4" + playerReports.size());
+                            player.sendMessage(Main.getInstance().getPrefix() + "§7Der Spieler ist: " + online);
+
+                            for(List<String> detailedReport : playerReports) {
+                                player.sendMessage(Main.getInstance().getPrefix() + "§4" + detailedReport.get(0) + "§7 | §4" + detailedReport.get(1) + "§7 | " + detailedReport.get(2));
+                            }
+                        } else {
+                            player.sendMessage(Main.getInstance().getPrefix() + "§cDir ist kein Report zugewiesen!");
+                        }
+                    } else {
+                        player.sendMessage(noPermission);
+                    }
                 }
             }
         } else if(args.length == 2) {
             if(!(args[0].equalsIgnoreCase("assign") || args[0].equalsIgnoreCase("unassign") || args[0].equalsIgnoreCase("close") || args[0].equalsIgnoreCase("info"))) {
                 ProxiedPlayer target = ProxyServer.getInstance().getPlayer(args[0]);
 
-                if(target != null && !reportManager.hasPlayerReportedTarget(player, target) && reportManager.isReportReasonValid(args[1].toUpperCase())) {
+                if(target != null && target != player && !reportManager.hasPlayerReportedTarget(player, target) && reportManager.isReportReasonValid(args[1].toUpperCase())) {
                     Date now = new Date();
                     reportManager.createPlayerReport(target, args[1].toUpperCase(), now, player);
 
@@ -108,17 +118,19 @@ public class CMD_Report extends Command {
                         if(reportManager.isReportAssigned(target)) {
                             TextComponent reportMessage = new TextComponent(Main.getInstance().getPrefix() + target.getDisplayName() + " §7| §4" + args[1].toUpperCase() + " §7| §4" + reportManager.getPlayerReport(target).size() + " §7Reports §7| §cZugewiesen (" + reportManager.getAssignedStaffmember(target).getDisplayName() + "§c)");
                             reportMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§cDer Report ist bereits zugewiesen").create()));
-                            player.sendMessage(reportMessage);
+                            onlineStaffMember.sendMessage(reportMessage);
                         } else {
                             TextComponent reportMessage = new TextComponent(Main.getInstance().getPrefix() + target.getDisplayName() + " §7| §4" + args[1].toUpperCase() + " §7| §4" + reportManager.getPlayerReport(target).size() + " §7Reports §7| §aOffen");
                             reportMessage.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("§7Den Report über " + target.getDisplayName() + " §7annehmen").create()));
                             reportMessage.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/report assign " + target.getName()));
-                            player.sendMessage(reportMessage);
+                            onlineStaffMember.sendMessage(reportMessage);
                         }
                     }
                 } else {
                     if(target == null) {
                         player.sendMessage(Main.getInstance().getPrefix() + "§cDieser Spieler ist nicht online!");
+                    } else if(target == player) {
+                        player.sendMessage(Main.getInstance().getPrefix() + "§cDu kannst dich selber nicht selber melden!");
                     } else if(reportManager.hasPlayerReportedTarget(player, target)) {
                         player.sendMessage(Main.getInstance().getPrefix() + "§cDiesen Spieler hast du schon gemeldet!");
                     } else if(!reportManager.isReportReasonValid(args[1].toUpperCase())) {

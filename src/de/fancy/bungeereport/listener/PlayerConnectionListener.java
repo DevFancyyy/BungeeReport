@@ -2,6 +2,7 @@ package de.fancy.bungeereport.listener;
 
 import de.fancy.bungeereport.Main;
 import de.fancy.bungeereport.utils.ReportManager;
+import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PlayerDisconnectEvent;
 import net.md_5.bungee.api.event.PostLoginEvent;
